@@ -10,9 +10,7 @@ const app = express();
 const PORT = process.env.PORT;
 app.use(
   cors({
-    origin: "process.env.FRONTEND_URL", // allow requests from this origin
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "*", // Allows ALL domains to access your API
   })
 );
 app.use(express.json());
