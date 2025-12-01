@@ -67,3 +67,15 @@ router.get("/:shortId", async (req, res) => {
 });
 
 export default router;
+
+// exmaple document in mongoDB
+
+// // {
+//     _id: ObjectId('692d2048331d21457f8d5bff'),
+//     originalurl: 'https://www.geeksforgeeks.org/explore?page=1&sortBy=submissions',
+//     shortId: 'vUOMxg1',
+//     clicks: 2,
+//     createdAt: ISODate('2025-12-01T04:57:44.386Z'),
+//     updatedAt: ISODate('2025-12-01T04:57:56.008Z'),
+//     __v: 0
+//   }
