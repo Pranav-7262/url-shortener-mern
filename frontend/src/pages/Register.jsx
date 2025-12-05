@@ -1,0 +1,126 @@
+import React, { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+
+const Register = () => {
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const res = await axios.post("/auth/register", form, {
+        withCredentials: true,
+      });
+
+      // Set user from cookie-backed response
+      if (res.data.user) {
+        setUser(res.data.user);
+        // Verify session cookie set by server
+        try {
+          const meRes = await axios.get("/auth/me", { withCredentials: true });
+          if (meRes.data?.user) setUser(meRes.data.user);
+        } catch (e) {
+          console.warn(
+            "/auth/me after register failed:",
+            e.response?.data || e.message
+          );
+        }
+      }
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Register error response:", err.response || err);
+      // Handle express-validator error array
+      const validationErrors = err.response?.data?.errors;
+      if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        setError(validationErrors.map((e) => e.msg).join(", "));
+      } else {
+        setError(err.response?.data?.msg || "Something went wrong!");
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex justify-center items-center bg-linear-to-br from-gray-900 to-black px-4">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20 animate-fadeIn">
+        <h2 className="text-3xl font-bold text-white text-center mb-6 tracking-wide">
+          Create Account ✨
+        </h2>
+
+        {error && (
+          <p className="text-red-400 bg-red-900/30 p-2 rounded-lg text-center mb-4">
+            {error}
+          </p>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-gray-200">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="mt-1 w-full px-4 py-2 rounded-lg bg-white/5 border border-gray-500 text-white focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-gray-200">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="mt-1 w-full px-4 py-2 rounded-lg bg-white/5 border border-gray-500 text-white focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-gray-200">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className="mt-1 w-full px-4 py-2 rounded-lg bg-white/5 border border-gray-500 text-white focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold text-lg shadow-md"
+          >
+            Register
+          </button>
+
+          <p className="text-gray-300 text-center">
+            Already have an account?{" "}
+            <Link to="/login" className="text-green-400 underline">
+              Login
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Register;

@@ -1,81 +1,101 @@
 import express from "express";
 import Url from "../models/url.js";
-import { nanoid } from "nanoid"; // for generating unique short IDs
+import { auth } from "../middleware/auth.js";
+import { nanoid } from "nanoid"; // tiny, collision-resistant id generator
 
 const router = express.Router();
 
-router.post("/shorten", async (req, res) => {
-  // Endpoint to create a shortened URL
-
+// Create a shortened URL (authenticated)
+// - Validates original URL, generates a unique shortId, stores record, and
+//   returns an absolute `shortUrl` so the frontend can open it directly.
+router.post("/shorten", auth, async (req, res) => {
   try {
-    const { originalurl } = req.body; // Get the original URL from the request body
-    if (!originalurl) {
+    const { originalurl } = req.body;
+    if (!originalurl)
       return res.status(400).json({ message: "Original URL is required" });
-    }
+
+    // Ensure value is a valid http(s) URL
     try {
-      // Validate the original URL is properly formatted and uses http(s)
-      const parsed = new URL(originalurl); // new URL() will throw if the URL is invalid
-      if (!["http:", "https:"].includes(parsed.protocol)) {
-        // only allow http and https protocols
+      const parsed = new URL(originalurl);
+      if (!["http:", "https:"].includes(parsed.protocol))
         return res.status(400).json({ message: "Invalid URL" });
-      }
     } catch (error) {
-      // new URL() throws if given an invalid URL string
       return res.status(400).json({ message: "Invalid URL" });
     }
 
-    let shortId; // ex . abc1234
-    let exists = true;
-
-    while (exists) {
-      //this is for checking unique shortId , if exists generate new one
-      shortId = nanoid(7); // Generate a unique short ID
-      const url = await Url.findOne({ shortId });
-      if (!url) {
-        exists = false;
-      }
+    // Generate a unique shortId (loop only on collision)
+    let shortId;
+    while (true) {
+      shortId = nanoid(7);
+      const exists = await Url.findOne({ shortId });
+      if (!exists) break;
     }
-    const newUrl = await Url.create({ originalurl, shortId }); // Save the new URL mapping to the database
 
-    const protocol = req.protocol;
-
-    res.status(201).json({
-      shortUrl: `${protocol}://${req.headers.host}/${newUrl.shortId}`,
-    }); // Return the shortened URL , including the host , example: localhost:3000/abc1234 , req.headers.host is may be different based on environment
+    const newUrl = await Url.create({
+      originalurl,
+      shortId,
+      user: req.user?.id,
+    });
+    const shortUrl = `${req.protocol}://${req.headers.host}/${newUrl.shortId}`;
+    return res
+      .status(201)
+      .json({ shortUrl, url: { ...newUrl.toObject(), shortUrl } });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: "Server Error" });
   }
 });
 
-router.get("/:shortId", async (req, res) => {
-  // Endpoint to redirect to the original URL using the short ID , when user access short url like localhost:3000/abc1234 ,
+// Return current user's URLs (adds absolute `shortUrl` to each item)
+router.get("/user/urls", auth, async (req, res) => {
   try {
-    const { shortId } = req.params; // Id is like , eg , abc1234
-    const url = await Url.findOne({ shortId });
-    if (url) {
-      url.clicks += 1; // Increment the click count
-      await url.save(); // Save the updated URL document
-      return res.redirect(url.originalurl); // Redirect to the original URL
-    } else {
-      return res.status(404).json({ message: "URL not found" });
-    }
+    const docs = await Url.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const urls = docs.map((u) => {
+      const obj = u.toObject();
+      obj.shortUrl = `${req.protocol}://${req.headers.host}/${u.shortId}`;
+      return obj;
+    });
+    return res.json({ urls });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server Error" });
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Redirect route: when a short URL is visited, increment metrics and redirect
+router.get("/:shortId", async (req, res) => {
+  try {
+    const { shortId } = req.params;
+    const url = await Url.findOne({ shortId });
+    if (!url) return res.status(404).json({ message: "URL not found" });
+
+    url.clicks += 1;
+    url.lastClick = new Date();
+    await url.save();
+    return res.redirect(url.originalurl);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Stats endpoint: return basic metrics for a shortId
+router.get("/stats/:shortId", async (req, res) => {
+  try {
+    const { shortId } = req.params;
+    const url = await Url.findOne({ shortId });
+    if (!url) return res.status(404).json({ message: "URL not found" });
+    return res.json({
+      shortId: url.shortId,
+      originalurl: url.originalurl,
+      clicks: url.clicks,
+      createdAt: url.createdAt,
+      lastClick: url.lastClick,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
   }
 });
 
 export default router;
-
-// exmaple document in mongoDB
-
-// // {
-//     _id: ObjectId('692d2048331d21457f8d5bff'),
-//     originalurl: 'https://www.geeksforgeeks.org/explore?page=1&sortBy=submissions',
-//     shortId: 'vUOMxg1',
-//     clicks: 2,
-//     createdAt: ISODate('2025-12-01T04:57:44.386Z'),
-//     updatedAt: ISODate('2025-12-01T04:57:56.008Z'),
-//     __v: 0
-//   }
