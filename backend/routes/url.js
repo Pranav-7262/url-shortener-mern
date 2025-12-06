@@ -49,6 +49,7 @@ router.post("/shorten", auth, async (req, res) => {
 // Return current user's URLs (adds absolute `shortUrl` to each item)
 router.get("/user/urls", auth, async (req, res) => {
   try {
+    console.log("GET /user/urls - req.user:", req.user);
     const docs = await Url.find({ user: req.user.id }).sort({ createdAt: -1 });
     const urls = docs.map((u) => {
       const obj = u.toObject();
