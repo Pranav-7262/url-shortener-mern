@@ -5,8 +5,9 @@ export const AuthContext = createContext();
 
 // Configure axios defaults used across the app
 axios.defaults.withCredentials = true;
-// Allow overriding API base URL in production via VITE_API_URL
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || "/api";
+// Use VITE_BACKEND_URL for production or fall back to /api proxy for dev
+axios.defaults.baseURL =
+  import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

@@ -1,8 +1,11 @@
+# Environment variables — NEVER commit .env files
+.env
+.env.local
+.env*.local
+backend/.env
+frontend/.env
 
 /dist
-/.env
-.env.local
-
 .DS_Store
 /build
 node_modules/
