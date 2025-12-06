@@ -79,6 +79,7 @@ router.post(
       res.status(201).json({
         msg: "User registered successfully",
         user: { id: user._id, name: user.name, email: user.email },
+        token: token, // Frontend will store this and use in Authorization header if needed
       });
     } catch (error) {
       console.error(error);
@@ -144,9 +145,11 @@ router.post(
       res.setHeader("X-Cookie-Set", COOKIE_NAME);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
+      // Include token in response so frontend can use it as Authorization header if cookie fails
       res.json({
         message: "Log in Successful!",
         user: { id: user._id, name: user.name, email: user.email },
+        token: token, // Frontend will store this and use in Authorization header if needed
       });
     } catch (error) {
       console.error(error);

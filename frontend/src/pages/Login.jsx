@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { setUser, saveToken } = useContext(AuthContext);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -27,9 +27,15 @@ export default function Login() {
       // Debug: log cookies after login
       console.log("After login - document.cookie:", document.cookie);
       console.log("Login response headers:", res.headers);
+      console.log("Login response data:", res.data);
 
       if (res.data.user) {
-        setUser(res.data.user); // rely on cookie (httpOnly) for auth persistence
+        // Store token from response (for Authorization header fallback)
+        if (res.data.token) {
+          saveToken(res.data.token);
+          console.log("Token saved to localStorage");
+        }
+        setUser(res.data.user); // Set user state
         // Verify session cookie is present by calling /auth/me and syncing user
         try {
           const meRes = await axios.get("/auth/me", { withCredentials: true });

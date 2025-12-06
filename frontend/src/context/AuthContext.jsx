@@ -9,12 +9,42 @@ axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
   import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "/api";
 
+// Load token from localStorage on app start (if present)
+const loadStoredToken = () => {
+  try {
+    return localStorage.getItem("authToken") || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Save token to localStorage
+const saveToken = (token) => {
+  try {
+    if (token) {
+      localStorage.setItem("authToken", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      localStorage.removeItem("authToken");
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  } catch (e) {
+    console.error("Failed to save token:", e);
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Global 401 handler: clear local user state when token invalid
+    // On mount: restore token from localStorage and set Authorization header
+    const storedToken = loadStoredToken();
+    if (storedToken) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+    }
+
+    // Global 401 handler: clear local user state and token when auth fails
     const interceptorId = axios.interceptors.response.use(
       (resp) => resp,
       async (err) => {
@@ -26,6 +56,7 @@ export const AuthProvider = ({ children }) => {
                 await axios.post("/auth/logout", {});
               } catch (e) {}
             }
+            saveToken(null); // Clear token on 401
             setUser(null);
           }
         }
@@ -33,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Fetch current user (if cookie present)
+    // Fetch current user (cookie or token in localStorage)
     (async function fetchUser() {
       try {
         const res = await axios.get("/auth/me");
@@ -49,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, saveToken }}>
       {children}
     </AuthContext.Provider>
   );

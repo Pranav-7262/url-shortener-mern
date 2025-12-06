@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { setUser, saveToken } = useContext(AuthContext);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -26,8 +26,13 @@ const Register = () => {
         withCredentials: true,
       });
 
-      // Set user from cookie-backed response
+      // Set user from response
       if (res.data.user) {
+        // Store token from response (for Authorization header fallback)
+        if (res.data.token) {
+          saveToken(res.data.token);
+          console.log("Token saved to localStorage after register");
+        }
         setUser(res.data.user);
         // Verify session cookie set by server
         try {
