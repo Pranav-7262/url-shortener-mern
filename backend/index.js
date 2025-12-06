@@ -34,6 +34,8 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    // Expose the debug header so frontend JS (axios) can see it in responses
+    exposedHeaders: ["X-Cookie-Set", "X-Auth-Set"],
   })
 );
 
