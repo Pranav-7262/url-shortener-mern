@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useContext } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import QRCode from "react-qr-code";
 import QRCodeGenerator from "qrcode";
