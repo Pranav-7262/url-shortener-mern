@@ -23,7 +23,7 @@ export default function Login() {
       const res = await axios.post("/auth/login", form, {
         withCredentials: true,
       });
-      
+
       // Debug: log cookies after login
       console.log("After login - document.cookie:", document.cookie);
       console.log("Login response headers:", res.headers);
