@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import QRCode from "react-qr-code";
 import QRCodeGenerator from "qrcode";
 import UrlCard from "../components/UrlCard";
 import EmptyState from "../components/EmptyState";
-import { AuthContext } from "../context/AuthContext";
 
 const Dashboard = () => {
   const [url, setUrl] = useState("");
@@ -18,12 +17,11 @@ const Dashboard = () => {
   const [showQr, setShowQr] = useState(false);
 
   // BASE API handled by Vite proxy (/api → localhost:3000)
-  const BASE = "/api";
 
   // Fetch URLs of logged-in user
   const loadUrls = async () => {
     try {
-      const res = await axios.get(`/user/urls`, {
+      const res = await axios.get(`/api/url/user/urls`, {
         withCredentials: true,
       });
       setUrls(res.data.urls || []);
@@ -39,7 +37,7 @@ const Dashboard = () => {
 
     try {
       const res = await axios.post(
-        `/shorten`,
+        `/api/url/shorten`,
         { originalurl: url },
         { withCredentials: true }
       );

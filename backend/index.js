@@ -27,7 +27,7 @@ console.log("  - process.env.RENDER =", process.env.RENDER);
 console.log("  - process.env.PORT =", process.env.PORT);
 
 // Configure allowed origins via `CLIENT_ORIGIN` or comma-separated `ALLOWED_ORIGINS`.
-const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const clientOrigin = process.env.CLIENT_ORIGIN;
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || clientOrigin)
   .split(",")
   .map((s) => s.trim());

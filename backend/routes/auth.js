@@ -16,22 +16,13 @@ const getJWTSecret = () =>
 
 // Helper: get consistent cookie options for both register and login
 const getCookieOptions = () => {
-  // On Render: ensure secure is always true (SECURE_COOKIES=true, RENDER_DEPLOYMENT=true, or RENDER env var)
-  // Also check NODE_ENV === "production" as fallback
-  const isSecure =
-    process.env.SECURE_COOKIES === "true" ||
-    process.env.RENDER_DEPLOYMENT === "true" ||
-    process.env.RENDER === "true" ||
-    process.env.RENDER ||
-    process.env.NODE_ENV === "production";
-
+  const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: isSecure, // Critical: must be true for sameSite: none on cross-domain
-    sameSite: isSecure ? "none" : "lax",
+    secure: isProd, // false in dev
+    sameSite: isProd ? "none" : "lax",
     path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    // Note: do NOT set domain explicitly; let browser infer from request origin
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 };
 

@@ -4,11 +4,11 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 // Configure axios defaults used across the app
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 axios.defaults.withCredentials = true;
-// Use VITE_BACKEND_URL for production or fall back to /api proxy for dev
-axios.defaults.baseURL =
-  import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "/api";
-
+if (!import.meta.env.VITE_BACKEND_URL) {
+  console.warn("⚠️ VITE_BACKEND_URL is missing!");
+}
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
           if (!url.includes("/auth/logout")) {
             if (!url.includes("/auth/me")) {
               try {
-                await axios.post("/auth/logout", {});
+                await axios.post("/auth/logout", {}, { withCredentials: true });
               } catch (e) {}
             }
             setUser(null);
@@ -36,7 +36,9 @@ export const AuthProvider = ({ children }) => {
     // Fetch current user (using cookies)
     (async function fetchUser() {
       try {
-        const res = await axios.get("/auth/me");
+        const res = await axios.get("/auth/me", { withCredentials: true });
+        console.log("JWT Secret:", process.env.JWT_SECRET);
+
         setUser(res.data.user || null);
       } catch (e) {
         setUser(null);
