@@ -159,8 +159,16 @@ router.post(
 router.post("/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.RENDER_DEPLOYMENT === "true" || process.env.SECURE_COOKIES === "true" || process.env.NODE_ENV === "production",
-    sameSite: (process.env.RENDER_DEPLOYMENT === "true" || process.env.SECURE_COOKIES === "true" || process.env.NODE_ENV === "production") ? "none" : "lax",
+    secure:
+      process.env.RENDER_DEPLOYMENT === "true" ||
+      process.env.SECURE_COOKIES === "true" ||
+      process.env.NODE_ENV === "production",
+    sameSite:
+      process.env.RENDER_DEPLOYMENT === "true" ||
+      process.env.SECURE_COOKIES === "true" ||
+      process.env.NODE_ENV === "production"
+        ? "none"
+        : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
