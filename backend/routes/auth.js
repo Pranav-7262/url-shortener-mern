@@ -56,14 +56,20 @@ router.post(
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        // Don't set domain explicitly in production — let browser handle it
+        // domain: undefined, // This allows cross-origin cookies with sameSite: "none"
       };
       console.log(
         "Setting cookie:",
         COOKIE_NAME,
         "with options:",
-        cookieOptions
+        cookieOptions,
+        "NODE_ENV:",
+        process.env.NODE_ENV
       );
       res.cookie(COOKIE_NAME, token, cookieOptions);
+      // Send a header so we can see cookie was set
+      res.setHeader("X-Cookie-Set", COOKIE_NAME);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
 
@@ -118,9 +124,13 @@ router.post(
         "Setting cookie:",
         COOKIE_NAME,
         "with options:",
-        cookieOptions
+        cookieOptions,
+        "NODE_ENV:",
+        process.env.NODE_ENV
       );
       res.cookie(COOKIE_NAME, token, cookieOptions);
+      // Send a header so we can see cookie was set
+      res.setHeader("X-Cookie-Set", COOKIE_NAME);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
       res.json({
