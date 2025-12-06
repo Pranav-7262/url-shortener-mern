@@ -15,7 +15,14 @@ export const auth = (req, res, next) => {
 
   // Token must be present in cookie named by COOKIE_NAME
   const token = req.cookies?.[COOKIE_NAME];
-  console.log("Auth check - All cookies:", req.cookies, "Token cookie:", COOKIE_NAME, "=", token ? "present" : "MISSING");
+  console.log(
+    "Auth check - All cookies:",
+    req.cookies,
+    "Token cookie:",
+    COOKIE_NAME,
+    "=",
+    token ? "present" : "MISSING"
+  );
   if (!token)
     return res.status(401).json({ msg: "No token, authorization denied" });
 
