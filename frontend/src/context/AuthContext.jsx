@@ -39,6 +39,7 @@ const saveToken = (token) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tokenLoaded, setTokenLoaded] = useState(false); // Track if token has been loaded from localStorage
 
   useEffect(() => {
     // On mount: restore token from localStorage and set Authorization header
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }) => {
     if (storedToken) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
     }
+    setTokenLoaded(true); // Mark token as loaded
 
     // Request interceptor: attach token from localStorage to every request
     const requestInterceptorId = axios.interceptors.request.use(
@@ -98,7 +100,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, saveToken }}>
+    <AuthContext.Provider
+      value={{ user, setUser, loading, saveToken, tokenLoaded }}
+    >
       {children}
     </AuthContext.Provider>
   );

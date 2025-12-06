@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useContext } from "react-router-dom";
 import axios from "axios";
 import QRCode from "react-qr-code";
 import QRCodeGenerator from "qrcode";
 import UrlCard from "../components/UrlCard";
 import EmptyState from "../components/EmptyState";
+import { AuthContext } from "../context/AuthContext";
 
 const Dashboard = () => {
+  const { tokenLoaded } = useContext(AuthContext); // Wait for token to be loaded
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -75,8 +77,11 @@ const Dashboard = () => {
 
   const location = useLocation();
   useEffect(() => {
-    loadUrls();
-  }, []);
+    // Only load URLs after token has been loaded from localStorage
+    if (tokenLoaded) {
+      loadUrls();
+    }
+  }, [tokenLoaded]);
 
   useEffect(() => {
     if (location.hash === "#urls") {
