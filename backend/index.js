@@ -14,6 +14,17 @@ const PORT = process.env.PORT || 3000;
 
 // Minimal startup info only — do not print secrets
 console.log("JWT secret present:", !!process.env.JWT_SECRET);
+console.log(
+  "[STARTUP] NODE_ENV:",
+  process.env.NODE_ENV,
+  "SECURE_COOKIES:",
+  process.env.SECURE_COOKIES,
+  "RENDER_DEPLOYMENT:",
+  process.env.RENDER_DEPLOYMENT
+);
+console.log("[STARTUP] Render environment check:");
+console.log("  - process.env.RENDER =", process.env.RENDER);
+console.log("  - process.env.PORT =", process.env.PORT);
 
 // Configure allowed origins via `CLIENT_ORIGIN` or comma-separated `ALLOWED_ORIGINS`.
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";

@@ -15,11 +15,17 @@ export const auth = (req, res, next) => {
 
   // Get token from cookie only
   const token = req.cookies?.[COOKIE_NAME];
+
+  // Log cookie state for debugging
+  console.log("[AUTH] Request to", req.path, ":");
+  console.log("[AUTH]  - Cookie name:", COOKIE_NAME, "value present:", !!token);
   console.log(
-    "Auth check - Cookie:",
-    COOKIE_NAME,
-    "=",
-    token ? "present" : "missing"
+    "[AUTH]  - All cookies received:",
+    Object.keys(req.cookies || {})
+  );
+  console.log(
+    "[AUTH]  - Authorization header:",
+    req.headers.authorization ? "present" : "missing"
   );
 
   if (!token)

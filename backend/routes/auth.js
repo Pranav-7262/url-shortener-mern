@@ -16,19 +16,22 @@ const getJWTSecret = () =>
 
 // Helper: get consistent cookie options for both register and login
 const getCookieOptions = () => {
-  // On Render: ensure secure is always true (SECURE_COOKIES=true or RENDER_DEPLOYMENT=true)
+  // On Render: ensure secure is always true (SECURE_COOKIES=true, RENDER_DEPLOYMENT=true, or RENDER env var)
+  // Also check NODE_ENV === "production" as fallback
   const isSecure =
     process.env.SECURE_COOKIES === "true" ||
     process.env.RENDER_DEPLOYMENT === "true" ||
+    process.env.RENDER === "true" ||
+    process.env.RENDER ||
     process.env.NODE_ENV === "production";
 
   return {
     httpOnly: true,
-    secure: isSecure, // Critical: must be true for sameSite: none
+    secure: isSecure, // Critical: must be true for sameSite: none on cross-domain
     sameSite: isSecure ? "none" : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    // Note: do NOT set domain explicitly for now; let browser infer from request origin
+    // Note: do NOT set domain explicitly; let browser infer from request origin
   };
 };
 
@@ -67,26 +70,17 @@ router.post(
         algorithm: "HS256",
       });
 
-      // Cookie options: httpOnly to prevent JS access, secure/sameSite for cross-site cookies
-      // On Render: set RENDER_DEPLOYMENT=true or SECURE_COOKIES=true to enable secure: true
-      const isSecure =
-        process.env.RENDER_DEPLOYMENT === "true" ||
-        process.env.SECURE_COOKIES === "true" ||
-        process.env.NODE_ENV === "production";
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isSecure,
-        sameSite: isSecure ? "none" : "lax",
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      };
+      // Use consistent cookie options via helper
+      const cookieOptions = getCookieOptions();
       console.log(
-        "Setting cookie:",
+        "[REGISTER] Setting cookie:",
         COOKIE_NAME,
         "with options:",
         cookieOptions,
         "NODE_ENV:",
-        process.env.NODE_ENV
+        process.env.NODE_ENV,
+        "SECURE_COOKIES:",
+        process.env.SECURE_COOKIES
       );
       res.cookie(COOKIE_NAME, token, cookieOptions);
       // Send a header so we can see cookie was set
@@ -136,10 +130,14 @@ router.post(
       });
       const cookieOptions = getCookieOptions();
       console.log(
-        "Setting cookie:",
+        "[LOGIN] Setting cookie:",
         COOKIE_NAME,
         "with options:",
-        cookieOptions
+        cookieOptions,
+        "NODE_ENV:",
+        process.env.NODE_ENV,
+        "SECURE_COOKIES:",
+        process.env.SECURE_COOKIES
       );
       res.cookie(COOKIE_NAME, token, cookieOptions);
       // Send a header so we can see cookie was set
