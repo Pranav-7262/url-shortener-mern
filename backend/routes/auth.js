@@ -49,15 +49,18 @@ router.post(
         algorithm: "HS256",
       });
 
-      // Cookie options: httpOnly to prevent JS access, secure/sameSite managed by NODE_ENV
+      // Cookie options: httpOnly to prevent JS access, secure/sameSite for cross-site cookies
+      // On Render: set RENDER_DEPLOYMENT=true or SECURE_COOKIES=true to enable secure: true
+      const isSecure =
+        process.env.RENDER_DEPLOYMENT === "true" ||
+        process.env.SECURE_COOKIES === "true" ||
+        process.env.NODE_ENV === "production";
       const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: isSecure,
+        sameSite: isSecure ? "none" : "lax",
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        // Don't set domain explicitly in production — let browser handle it
-        // domain: undefined, // This allows cross-origin cookies with sameSite: "none"
       };
       console.log(
         "Setting cookie:",
@@ -115,8 +118,16 @@ router.post(
       });
       const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure:
+          process.env.RENDER_DEPLOYMENT === "true" ||
+          process.env.SECURE_COOKIES === "true" ||
+          process.env.NODE_ENV === "production",
+        sameSite:
+          process.env.RENDER_DEPLOYMENT === "true" ||
+          process.env.SECURE_COOKIES === "true" ||
+          process.env.NODE_ENV === "production"
+            ? "none"
+            : "lax",
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       };
@@ -148,8 +159,8 @@ router.post(
 router.post("/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.RENDER_DEPLOYMENT === "true" || process.env.SECURE_COOKIES === "true" || process.env.NODE_ENV === "production",
+    sameSite: (process.env.RENDER_DEPLOYMENT === "true" || process.env.SECURE_COOKIES === "true" || process.env.NODE_ENV === "production") ? "none" : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
