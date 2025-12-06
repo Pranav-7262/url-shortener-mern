@@ -10,6 +10,9 @@ axios.defaults.baseURL =
   import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "/api";
 
 // Load token from localStorage on app start (if present)
+// Why localStorage? Cookies require Set-Cookie from server with proper domain/sameSite flags.
+// If cookies fail (cross-site issues), we fall back to Authorization header auth using localStorage.
+// This makes the app work in all scenarios: cookie-enabled or cookie-blocked.
 const loadStoredToken = () => {
   try {
     return localStorage.getItem("authToken") || null;
@@ -44,8 +47,20 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
     }
 
+    // Request interceptor: attach token from localStorage to every request
+    const requestInterceptorId = axios.interceptors.request.use(
+      (config) => {
+        const token = loadStoredToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (err) => Promise.reject(err)
+    );
+
     // Global 401 handler: clear local user state and token when auth fails
-    const interceptorId = axios.interceptors.response.use(
+    const responseInterceptorId = axios.interceptors.response.use(
       (resp) => resp,
       async (err) => {
         if (err.response?.status === 401) {
@@ -76,7 +91,10 @@ export const AuthProvider = ({ children }) => {
       }
     })();
 
-    return () => axios.interceptors.response.eject(interceptorId);
+    return () => {
+      axios.interceptors.request.eject(requestInterceptorId);
+      axios.interceptors.response.eject(responseInterceptorId);
+    };
   }, []);
 
   return (
