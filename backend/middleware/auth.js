@@ -5,33 +5,23 @@ const COOKIE_NAME = process.env.COOKIE_NAME || "token";
 const getJWTSecret = () =>
   process.env.JWT_SECRET && process.env.JWT_SECRET.trim();
 
-// Cookie-first auth middleware, with Authorization header fallback:
-// - Try to read JWT from httpOnly cookie (COOKIE_NAME)
-// - Fall back to Authorization: Bearer <token> header
+// Cookie-only auth middleware:
+// - Read JWT from httpOnly cookie (COOKIE_NAME)
 // - Verify signature and attach `req.user = { id }` on success
 export const auth = (req, res, next) => {
   const JWT_SECRET = getJWTSecret();
   if (!JWT_SECRET)
     return res.status(500).json({ msg: "Server JWT secret not configured" });
 
-  // Try cookie first (most secure), then Authorization header
-  let token = req.cookies?.[COOKIE_NAME];
-  if (!token) {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.substring(7); // Remove "Bearer " prefix
-    }
-  }
+  // Get token from cookie only
+  const token = req.cookies?.[COOKIE_NAME];
   console.log(
     "Auth check - Cookie:",
     COOKIE_NAME,
     "=",
-    req.cookies?.[COOKIE_NAME] ? "present" : "missing",
-    "Authorization header:",
-    req.headers.authorization ? "present" : "missing",
-    "Token resolved:",
-    token ? "yes" : "NO"
+    token ? "present" : "missing"
   );
+
   if (!token)
     return res.status(401).json({ msg: "No token, authorization denied" });
 

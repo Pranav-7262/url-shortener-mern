@@ -9,59 +9,12 @@ axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
   import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "/api";
 
-// Load token from localStorage on app start (if present)
-// Why localStorage? Cookies require Set-Cookie from server with proper domain/sameSite flags.
-// If cookies fail (cross-site issues), we fall back to Authorization header auth using localStorage.
-// This makes the app work in all scenarios: cookie-enabled or cookie-blocked.
-const loadStoredToken = () => {
-  try {
-    return localStorage.getItem("authToken") || null;
-  } catch (e) {
-    return null;
-  }
-};
-
-// Save token to localStorage
-const saveToken = (token) => {
-  try {
-    if (token) {
-      localStorage.setItem("authToken", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      localStorage.removeItem("authToken");
-      delete axios.defaults.headers.common["Authorization"];
-    }
-  } catch (e) {
-    console.error("Failed to save token:", e);
-  }
-};
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tokenLoaded, setTokenLoaded] = useState(false); // Track if token has been loaded from localStorage
 
   useEffect(() => {
-    // On mount: restore token from localStorage and set Authorization header
-    const storedToken = loadStoredToken();
-    if (storedToken) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-    }
-    setTokenLoaded(true); // Mark token as loaded
-
-    // Request interceptor: attach token from localStorage to every request
-    const requestInterceptorId = axios.interceptors.request.use(
-      (config) => {
-        const token = loadStoredToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (err) => Promise.reject(err)
-    );
-
-    // Global 401 handler: clear local user state and token when auth fails
+    // Global 401 handler: clear local user state when token invalid
     const responseInterceptorId = axios.interceptors.response.use(
       (resp) => resp,
       async (err) => {
@@ -73,7 +26,6 @@ export const AuthProvider = ({ children }) => {
                 await axios.post("/auth/logout", {});
               } catch (e) {}
             }
-            saveToken(null); // Clear token on 401
             setUser(null);
           }
         }
@@ -81,7 +33,7 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Fetch current user (cookie or token in localStorage)
+    // Fetch current user (using cookies)
     (async function fetchUser() {
       try {
         const res = await axios.get("/auth/me");
@@ -94,15 +46,12 @@ export const AuthProvider = ({ children }) => {
     })();
 
     return () => {
-      axios.interceptors.request.eject(requestInterceptorId);
       axios.interceptors.response.eject(responseInterceptorId);
     };
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ user, setUser, loading, saveToken, tokenLoaded }}
-    >
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

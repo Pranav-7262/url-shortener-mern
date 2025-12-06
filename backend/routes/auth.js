@@ -14,6 +14,24 @@ const COOKIE_NAME = process.env.COOKIE_NAME || "token";
 const getJWTSecret = () =>
   process.env.JWT_SECRET && process.env.JWT_SECRET.trim();
 
+// Helper: get consistent cookie options for both register and login
+const getCookieOptions = () => {
+  // On Render: ensure secure is always true (SECURE_COOKIES=true or RENDER_DEPLOYMENT=true)
+  const isSecure =
+    process.env.SECURE_COOKIES === "true" ||
+    process.env.RENDER_DEPLOYMENT === "true" ||
+    process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isSecure, // Critical: must be true for sameSite: none
+    sameSite: isSecure ? "none" : "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // Note: do NOT set domain explicitly for now; let browser infer from request origin
+  };
+};
+
 router.post(
   "/register",
   [
@@ -79,7 +97,6 @@ router.post(
       res.status(201).json({
         msg: "User registered successfully",
         user: { id: user._id, name: user.name, email: user.email },
-        token: token, // Frontend will store this and use in Authorization header if needed
       });
     } catch (error) {
       console.error(error);
@@ -117,39 +134,21 @@ router.post(
         expiresIn: JWT_EXPIRES_IN,
         algorithm: "HS256",
       });
-      const cookieOptions = {
-        httpOnly: true,
-        secure:
-          process.env.RENDER_DEPLOYMENT === "true" ||
-          process.env.SECURE_COOKIES === "true" ||
-          process.env.NODE_ENV === "production",
-        sameSite:
-          process.env.RENDER_DEPLOYMENT === "true" ||
-          process.env.SECURE_COOKIES === "true" ||
-          process.env.NODE_ENV === "production"
-            ? "none"
-            : "lax",
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      };
+      const cookieOptions = getCookieOptions();
       console.log(
         "Setting cookie:",
         COOKIE_NAME,
         "with options:",
-        cookieOptions,
-        "NODE_ENV:",
-        process.env.NODE_ENV
+        cookieOptions
       );
       res.cookie(COOKIE_NAME, token, cookieOptions);
       // Send a header so we can see cookie was set
       res.setHeader("X-Cookie-Set", COOKIE_NAME);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
-      // Include token in response so frontend can use it as Authorization header if cookie fails
       res.json({
         message: "Log in Successful!",
         user: { id: user._id, name: user.name, email: user.email },
-        token: token, // Frontend will store this and use in Authorization header if needed
       });
     } catch (error) {
       console.error(error);
@@ -160,22 +159,7 @@ router.post(
 
 // Logout
 router.post("/logout", (req, res) => {
-  const cookieOptions = {
-    httpOnly: true,
-    secure:
-      process.env.RENDER_DEPLOYMENT === "true" ||
-      process.env.SECURE_COOKIES === "true" ||
-      process.env.NODE_ENV === "production",
-    sameSite:
-      process.env.RENDER_DEPLOYMENT === "true" ||
-      process.env.SECURE_COOKIES === "true" ||
-      process.env.NODE_ENV === "production"
-        ? "none"
-        : "lax",
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  };
-
+  const cookieOptions = getCookieOptions();
   res.clearCookie(COOKIE_NAME, cookieOptions);
   res.json({ msg: "Logged out" });
 }); // clearing the cookie

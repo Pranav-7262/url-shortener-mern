@@ -1,12 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser, saveToken } = useContext(AuthContext);
+  const { setUser } = useContext(AuthContext);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -24,36 +23,9 @@ export default function Login() {
         withCredentials: true,
       });
 
-      // Debug: log cookies after login
-      console.log("After login - document.cookie:", document.cookie);
-      console.log("Login response headers:", res.headers);
-      console.log("Login response data:", res.data);
-
       if (res.data.user) {
-        // Store token from response (for Authorization header fallback)
-        if (res.data.token) {
-          saveToken(res.data.token);
-          console.log("Token saved to localStorage");
-        }
-        setUser(res.data.user); // Set user state
-        // Verify session cookie is present by calling /auth/me and syncing user
-        try {
-          const meRes = await axios.get("/auth/me", { withCredentials: true });
-          if (meRes.data?.user) setUser(meRes.data.user);
-        } catch (e) {
-          console.warn(
-            "/auth/me after login failed:",
-            e.response?.data || e.message
-          );
-        }
+        setUser(res.data.user);
       }
-      // Dev helper: server may set 'X-Auth-Set' header to indicate Set-Cookie was sent
-      try {
-        const authSet =
-          res.headers?.["x-auth-set"] || res.headers?.["X-Auth-Set"];
-        if (authSet) console.log("Server reported cookie set (X-Auth-Set)");
-      } catch (e) {}
-      // Note: cookie is set by server (httpOnly) — it will be sent automatically with requests via axios withCredentials
 
       if (res.data.message === "Log in Successful!") {
         navigate("/dashboard");

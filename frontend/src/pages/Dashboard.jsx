@@ -8,7 +8,6 @@ import EmptyState from "../components/EmptyState";
 import { AuthContext } from "../context/AuthContext";
 
 const Dashboard = () => {
-  const { tokenLoaded } = useContext(AuthContext); // Wait for token to be loaded
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -77,11 +76,8 @@ const Dashboard = () => {
 
   const location = useLocation();
   useEffect(() => {
-    // Only load URLs after token has been loaded from localStorage
-    if (tokenLoaded) {
-      loadUrls();
-    }
-  }, [tokenLoaded]);
+    loadUrls();
+  }, []);
 
   useEffect(() => {
     if (location.hash === "#urls") {

@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { setUser, saveToken } = useContext(AuthContext);
+  const { setUser } = useContext(AuthContext);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -26,24 +25,8 @@ const Register = () => {
         withCredentials: true,
       });
 
-      // Set user from response
       if (res.data.user) {
-        // Store token from response (for Authorization header fallback)
-        if (res.data.token) {
-          saveToken(res.data.token);
-          console.log("Token saved to localStorage after register");
-        }
         setUser(res.data.user);
-        // Verify session cookie set by server
-        try {
-          const meRes = await axios.get("/auth/me", { withCredentials: true });
-          if (meRes.data?.user) setUser(meRes.data.user);
-        } catch (e) {
-          console.warn(
-            "/auth/me after register failed:",
-            e.response?.data || e.message
-          );
-        }
       }
 
       navigate("/dashboard");
