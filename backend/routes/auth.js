@@ -57,6 +57,7 @@ router.post(
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       };
+      console.log("Setting cookie:", COOKIE_NAME, "with options:", cookieOptions);
       res.cookie(COOKIE_NAME, token, cookieOptions);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
@@ -108,6 +109,7 @@ router.post(
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       };
+      console.log("Setting cookie:", COOKIE_NAME, "with options:", cookieOptions);
       res.cookie(COOKIE_NAME, token, cookieOptions);
       if (process.env.NODE_ENV !== "production")
         res.setHeader("X-Auth-Set", "1");
