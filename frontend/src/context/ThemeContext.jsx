@@ -3,23 +3,21 @@ import React, { createContext, useEffect, useState } from "react";
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => {
+    // Lazy initialize from localStorage
+    return localStorage.getItem("theme") || "light";
+  });
 
+  // Apply theme class to <html>
   useEffect(() => {
-    // Read persisted theme (localStorage is acceptable for UI preference)
-    const stored = localStorage.getItem("theme");
-    const initial = stored || "light";
-    setTheme(initial);
-    if (initial === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, []);
+    const root = document.documentElement;
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    if (next === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-    localStorage.setItem("theme", next);
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   return (

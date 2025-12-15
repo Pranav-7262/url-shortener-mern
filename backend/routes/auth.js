@@ -63,22 +63,9 @@ router.post(
 
       // Use consistent cookie options via helper
       const cookieOptions = getCookieOptions();
-      console.log(
-        "[REGISTER] Setting cookie:",
-        COOKIE_NAME,
-        "with options:",
-        cookieOptions,
-        "NODE_ENV:",
-        process.env.NODE_ENV,
-        "SECURE_COOKIES:",
-        process.env.SECURE_COOKIES
-      );
+
       res.cookie(COOKIE_NAME, token, cookieOptions);
       // Send a header so we can see cookie was set
-      res.setHeader("X-Cookie-Set", COOKIE_NAME);
-      if (process.env.NODE_ENV !== "production")
-        res.setHeader("X-Auth-Set", "1");
-
       res.status(201).json({
         msg: "User registered successfully",
         user: { id: user._id, name: user.name, email: user.email },
@@ -120,21 +107,8 @@ router.post(
         algorithm: "HS256",
       });
       const cookieOptions = getCookieOptions();
-      console.log(
-        "[LOGIN] Setting cookie:",
-        COOKIE_NAME,
-        "with options:",
-        cookieOptions,
-        "NODE_ENV:",
-        process.env.NODE_ENV,
-        "SECURE_COOKIES:",
-        process.env.SECURE_COOKIES
-      );
       res.cookie(COOKIE_NAME, token, cookieOptions);
-      // Send a header so we can see cookie was set
-      res.setHeader("X-Cookie-Set", COOKIE_NAME);
-      if (process.env.NODE_ENV !== "production")
-        res.setHeader("X-Auth-Set", "1");
+
       res.json({
         message: "Log in Successful!",
         user: { id: user._id, name: user.name, email: user.email },

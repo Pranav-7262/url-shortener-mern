@@ -5,9 +5,6 @@ const COOKIE_NAME = process.env.COOKIE_NAME || "token";
 const getJWTSecret = () =>
   process.env.JWT_SECRET && process.env.JWT_SECRET.trim();
 
-// Cookie-only auth middleware:
-// - Read JWT from httpOnly cookie (COOKIE_NAME)
-// - Verify signature and attach `req.user = { id }` on success
 export const auth = (req, res, next) => {
   const JWT_SECRET = getJWTSecret();
   if (!JWT_SECRET)
@@ -15,18 +12,6 @@ export const auth = (req, res, next) => {
 
   // Get token from cookie only
   const token = req.cookies?.[COOKIE_NAME];
-
-  // Log cookie state for debugging
-  console.log("[AUTH] Request to", req.path, ":");
-  console.log("[AUTH]  - Cookie name:", COOKIE_NAME, "value present:", !!token);
-  console.log(
-    "[AUTH]  - All cookies received:",
-    Object.keys(req.cookies || {})
-  );
-  console.log(
-    "[AUTH]  - Authorization header:",
-    req.headers.authorization ? "present" : "missing"
-  );
 
   if (!token)
     return res.status(401).json({ msg: "No token, authorization denied" });

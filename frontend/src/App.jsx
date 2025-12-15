@@ -18,17 +18,18 @@ import UrlDetails from "./pages/UrlDetails";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
+// ------------------- Loading Screen -------------------
+const LoadingScreen = () => (
+  <div className="min-h-screen flex justify-center items-center">
+    <p className="text-gray-700 text-lg animate-pulse">Loading...</p>
+  </div>
+);
+
 // ------------------- Private Route -------------------
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
 
-  if (loading)
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <p className="text-gray-700 text-lg animate-pulse">Loading...</p>
-      </div>
-    );
-
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" />;
 
   return children;
@@ -38,13 +39,7 @@ const PrivateRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
 
-  if (loading)
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <p className="text-gray-700 text-lg animate-pulse">Loading...</p>
-      </div>
-    );
-
+  if (loading) return <LoadingScreen />;
   if (user) return <Navigate to="/dashboard" />;
 
   return children;
@@ -60,14 +55,14 @@ const App = () => {
             <Navbar />
 
             <div className="flex flex-1">
-              {/* Sidebar responsive: hidden on small screens */}
-              <div className="hidden md:block w-64">
+              {/* Sidebar (hidden on small screens) */}
+              <aside className="hidden md:block w-64">
                 <Sidebar />
-              </div>
+              </aside>
 
               <main className="flex-1 p-4">
                 <Routes>
-                  {/* Public Routes */}
+                  {/* ---------- Public Routes ---------- */}
                   <Route
                     path="/login"
                     element={
@@ -76,6 +71,7 @@ const App = () => {
                       </PublicRoute>
                     }
                   />
+
                   <Route
                     path="/register"
                     element={
@@ -85,7 +81,7 @@ const App = () => {
                     }
                   />
 
-                  {/* Private Routes */}
+                  {/* ---------- Private Routes ---------- */}
                   <Route
                     path="/dashboard"
                     element={
@@ -94,6 +90,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/home"
                     element={
@@ -102,6 +99,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/profile"
                     element={
@@ -110,6 +108,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/settings"
                     element={
@@ -118,6 +117,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/help"
                     element={
@@ -126,6 +126,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/about"
                     element={
@@ -134,6 +135,7 @@ const App = () => {
                       </PrivateRoute>
                     }
                   />
+
                   <Route
                     path="/stats/:shortId"
                     element={
@@ -143,7 +145,7 @@ const App = () => {
                     }
                   />
 
-                  {/* Default route */}
+                  {/* ---------- Default Route ---------- */}
                   <Route
                     path="/"
                     element={<Navigate to="/dashboard" replace />}

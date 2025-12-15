@@ -22,7 +22,6 @@ router.post("/shorten", auth, async (req, res) => {
       return res.status(400).json({ message: "Invalid URL" });
     }
 
-    // Generate unique id
     let shortId;
     while (true) {
       shortId = nanoid(7);
@@ -61,6 +60,37 @@ router.get("/user/urls", auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server Error" });
+  }
+});
+router.get("/stats/:shortId", async (req, res) => {
+  try {
+    const { shortId } = req.params;
+    const url = await Url.findOne({ shortId });
+    if (!url) return res.status(404).json({ message: "URL not found" });
+    return res.json({
+      shortId: url.shortId,
+      originalurl: url.originalurl,
+      clicks: url.clicks,
+      createdAt: url.createdAt,
+      lastClick: url.lastClick,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+});
+router.get("/:shortId", async (req, res) => {
+  try {
+    const { shortId } = req.params;
+    const url = await Url.findOne({ shortId });
+    if (!url) return res.status(404).json({ message: "URL not found" });
+    url.clicks += 1;
+    url.lastClick = new Date();
+    await url.save();
+    return res.redirect(url.originalurl);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
   }
 });
 

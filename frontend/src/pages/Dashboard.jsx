@@ -21,7 +21,7 @@ const Dashboard = () => {
   // Fetch URLs of logged-in user
   const loadUrls = async () => {
     try {
-      const res = await axios.get(`/api/url/user/urls`, {
+      const res = await axios.get(`/user/urls`, {
         withCredentials: true,
       });
       setUrls(res.data.urls || []);
@@ -37,7 +37,7 @@ const Dashboard = () => {
 
     try {
       const res = await axios.post(
-        `/api/url/shorten`,
+        `/shorten`,
         { originalurl: url },
         { withCredentials: true }
       );
@@ -245,14 +245,14 @@ const Dashboard = () => {
               />
             ) : (
               <div
-                className={`grid gap-6 ${
+                className={`grid gap-6 justify-items-center ${
                   compact
-                    ? "grid-cols-1"
-                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                } justify-items-center`}
+                    ? "grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1"
+                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2"
+                }`}
               >
                 {urls.map((u) => (
-                  <div className="w-full sm:w-auto" key={u._id}>
+                  <div className="w-full flex justify-center" key={u._id}>
                     <UrlCard url={u} compact={compact} showQr={showQr} />
                   </div>
                 ))}
