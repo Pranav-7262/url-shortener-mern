@@ -2,13 +2,6 @@
 
 A sleek, fast, and modern URL shortener built using the MERN (MongoDB, Express, React, Node.js) stack. This application allows users to shorten long URLs, generate a corresponding QR code, and easily copy the resulting short link.
 
-## 🚀 Live Demo
-
-You can view the live, deployed application here:
-
-**[https://frontend-us7s.onrender.com/](https://frontend-us7s.onrender.com/)**
-
----
 
 ## ✨ Features
 
