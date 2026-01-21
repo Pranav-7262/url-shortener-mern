@@ -18,7 +18,7 @@ export const auth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    console.log("decoded :", decoded);
+
     // Attach minimal user info for route handlers
     req.user = { id: decoded.id };
     return next();

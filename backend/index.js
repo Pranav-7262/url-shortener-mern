@@ -1,5 +1,6 @@
 // Load environment variables (.env)
 import "dotenv/config";
+import morgan from "morgan";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -16,12 +17,13 @@ app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN, // http://localhost:5173
     credentials: true,
-  })
+  }),
 );
 
 // Parse JSON and cookies
 app.use(express.json());
 app.use(cookieParser());
+app.use(morgan("dev")); // HTTP request logger
 
 // API routes
 app.use("/", urlRoutes);
