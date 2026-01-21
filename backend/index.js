@@ -30,8 +30,12 @@ app.use("/", urlRoutes);
 app.use("/auth", authRoutes);
 
 // Start server after DB connection
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("Failed to connect to the database : ", err);
   });
-});
